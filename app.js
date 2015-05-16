@@ -8,11 +8,31 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+var renderer = require('react-engine');
+
 var app = express();
+// create the view engine with `react-engine`
+var engine = renderer.server.create({
+  reactRoutes: path.join(__dirname + '/app/routes.js')
+});
+
+// set the engine
+app.engine('.jsx', engine);
+
+// set the view directory
+app.set('views', __dirname + '/app/views');
+
+// set jsx as the view engine
+app.set('view engine', 'jsx');
+
+// finally, set the custom view
+app.set('view', renderer.expressView);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+//app.set('views', path.join(__dirname, 'views'));
+//app.set('view engine', 'ejs');
+
+
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -22,8 +42,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes);
-app.use('/users', users);
+
+
+app.get('/', function(req, res) {
+  res.render(req.url, {
+    title: 'Trackr',
+    name: 'Kevin'
+  });
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -38,6 +64,8 @@ app.use(function(req, res, next) {
 // will print stacktrace
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
+    console.log(err.message);
+    console.log(err);
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
